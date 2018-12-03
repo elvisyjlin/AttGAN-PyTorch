@@ -68,7 +68,7 @@ else:
 
 
 attgan = AttGAN(args)
-attgan.load(find_model(join('output', args.experiment_name, 'checkpoint'), 'latest'))
+attgan.load(find_model(join('output', args.experiment_name, 'checkpoint'), args.load_epoch))
 progressbar = Progressbar()
 
 attgan.eval()

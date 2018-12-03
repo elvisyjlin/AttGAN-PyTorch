@@ -62,11 +62,14 @@ else:
 
 
 attgan = AttGAN(args)
-attgan.load(find_model(join('output', args.experiment_name, 'checkpoint'), 'latest'))
+attgan.load(find_model(join('output', args.experiment_name, 'checkpoint'), args.load_epoch))
 progressbar = Progressbar()
 
 attgan.eval()
 for idx, (img_a, att_a) in enumerate(test_dataloader):
+    if idx + 182638 not in [182779]:
+        continue
+    
     if args.num_test is not None and idx == args.num_test:
         break
     
