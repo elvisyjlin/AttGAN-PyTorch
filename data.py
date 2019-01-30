@@ -41,6 +41,44 @@ class CelebA(data.Dataset):
     def __len__(self):
         return self.length
 
+class CelebA_HQ(data.Dataset):
+    def __init__(self, data_path, attr_path, image_list_path, image_size, mode, selected_attrs):
+        super(CelebA_HQ, self).__init__()
+        self.data_path = data_path
+        att_list = open(attr_path, 'r', encoding='utf-8').readlines()[1].split()
+        atts = [att_list.index(att) + 1 for att in selected_attrs]
+        orig_images = np.loadtxt(attr_path, skiprows=2, usecols=[0], dtype=np.str)
+        orig_labels = np.loadtxt(attr_path, skiprows=2, usecols=atts, dtype=np.int)
+        indices = np.loadtxt(image_list_path, skiprows=1, usecols=[1], dtype=np.int)
+        
+        images = ['{:d}.jpg'.format(i) for i in range(30000)]
+        labels = orig_labels[indices]
+        
+        if mode == 'train':
+            self.images = images[:28000]
+            self.labels = labels[:28000]
+        if mode == 'valid':
+            self.images = images[28000:28500]
+            self.labels = labels[28000:28500]
+        if mode == 'test':
+            self.images = images[28500:]
+            self.labels = labels[28500:]
+        
+        self.tf = transforms.Compose([
+            transforms.ToPILImage(), 
+            transforms.Resize(image_size), 
+            transforms.ToTensor(), 
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])
+                                       
+        self.length = len(self.images)
+    def __getitem__(self, index):
+        img = self.tf(io.imread(os.path.join(self.data_path, self.images[index])))
+        att = torch.tensor((self.labels[index] + 1) // 2)
+        return img, att
+    def __len__(self):
+        return self.length
+
 def check_attribute_conflict(att_batch, att_name, att_names):
     def _get(att, att_name):
         if att_name in att_names:

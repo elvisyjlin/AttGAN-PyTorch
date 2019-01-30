@@ -5,7 +5,7 @@ import os
 from os.path import join
 
 import torch.utils.data as data
-from data import CelebA
+from data import CelebA, CelebA_HQ
 
 import torch
 import torchvision.utils as vutils
@@ -24,8 +24,10 @@ def parse(args=None):
     parser = argparse.ArgumentParser()
     
     parser.add_argument('--attrs', dest='attrs', default=attrs_default, nargs='+', help='attributes to learn')
+    parser.add_argument('--data', dest='data', type=str, choices=['CelebA', 'CelebA-HQ'], default='CelebA')
     parser.add_argument('--data_path', dest='data_path', type=str, default='data/img_align_celeba')
     parser.add_argument('--attr_path', dest='attr_path', type=str, default='data/list_attr_celeba.txt')
+    parser.add_argument('--image_list_path', dest='image_list_path', type=str, default='data/image_list.txt')
     
     parser.add_argument('--img_size', dest='img_size', type=int, default=128)
     parser.add_argument('--shortcut_layers', dest='shortcut_layers', type=int, default=1)
@@ -80,16 +82,28 @@ os.makedirs(join('output', args.experiment_name, 'sample_training'), exist_ok=Tr
 with open(join('output', args.experiment_name, 'setting.txt'), 'w') as f:
     f.write(json.dumps(vars(args), indent=4, separators=(',', ':')))
 
-train_dataset = CelebA(args.data_path, args.attr_path, args.img_size, 'train', args.attrs)
-train_dataloader = data.DataLoader(
-    train_dataset, batch_size=args.batch_size, num_workers=args.num_workers, 
-    shuffle=True, drop_last=True
-)
-valid_dataset = CelebA(args.data_path, args.attr_path, args.img_size, 'valid', args.attrs)
-valid_dataloader = data.DataLoader(
-    valid_dataset, batch_size=args.n_samples, num_workers=args.num_workers, 
-    shuffle=False, drop_last=False
-)
+if args.data == 'CelebA':
+    train_dataset = CelebA(args.data_path, args.attr_path, args.img_size, 'train', args.attrs)
+    train_dataloader = data.DataLoader(
+        train_dataset, batch_size=args.batch_size, num_workers=args.num_workers, 
+        shuffle=True, drop_last=True
+    )
+    valid_dataset = CelebA(args.data_path, args.attr_path, args.img_size, 'valid', args.attrs)
+    valid_dataloader = data.DataLoader(
+        valid_dataset, batch_size=args.n_samples, num_workers=args.num_workers, 
+        shuffle=False, drop_last=False
+    )
+if args.data == 'CelebA-HQ':
+    train_dataset = CelebA_HQ(args.data_path, args.attr_path, args.image_list_path, args.img_size, 'train', args.attrs)
+    train_dataloader = data.DataLoader(
+        train_dataset, batch_size=args.batch_size, num_workers=args.num_workers, 
+        shuffle=True, drop_last=True
+    )
+    valid_dataset = CelebA_HQ(args.data_path, args.attr_path, args.image_list_path, args.img_size, 'valid', args.attrs)
+    valid_dataloader = data.DataLoader(
+        valid_dataset, batch_size=args.n_samples, num_workers=args.num_workers, 
+        shuffle=False, drop_last=False
+    )
 print('Training images:', len(train_dataset), '/', 'Validating images:', len(valid_dataset))
 
 attgan = AttGAN(args)
