@@ -25,8 +25,8 @@ pip3 install -r requirements.txt
     * [Attribute labels](https://www.dropbox.com/sh/8oqt9vytwxb3s4r/AAA8YmAHNNU6BEfWMPMfM6r9a/Anno?dl=0&preview=list_attr_celeba.txt) should be placed in `./data/list_attr_celeba.txt`
   * [HD-CelebA](https://github.com/LynnHo/HD-CelebA-Cropper) (optional)
     * Please see [here](https://github.com/LynnHo/HD-CelebA-Cropper).
-  * [CelebA-HQ](https://github.com/tkarras/progressive_growing_of_gans) dataset
-    * Please see [here](https://github.com/willylulu/celeba-hq-modified)
+  * [CelebA-HQ](https://github.com/tkarras/progressive_growing_of_gans) dataset (optional)
+    * Please see [here](https://github.com/willylulu/celeba-hq-modified).
     * _Images_ should be placed in `./data/celeba-hq/celeba-*/*.jpg`
     * _Image list_ should be placed in `./data/image_list.txt`
 * [Pretrained models](https://goo.gl/mQkqNo): download the models you need and unzip the files to `./output/` as below,
@@ -40,7 +40,7 @@ pip3 install -r requirements.txt
 
 ## Usage
 
-To train an AttGAN
+To train an AttGAN on CelebA 128x128
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 \ 
@@ -49,6 +49,19 @@ python train.py \
 --shortcut_layers 1 \ 
 --inject_layers 1 \ 
 --experiment_name 128_shortcut1_inject1_none \ 
+--gpu
+```
+
+To train an AttGAN on CelebA-HQ 256x256
+
+```bash
+CUDA_VISIBLE_DEVICES=0 \ 
+python train.py \ 
+--data CelebA-HQ \ 
+--img_size 256 \ 
+--shortcut_layers 1 \ 
+--inject_layers 1 \ 
+--experiment_name 256_shortcut1_inject1_none_hq \ 
 --gpu
 ```
 
