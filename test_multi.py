@@ -9,7 +9,7 @@ import torch.utils.data as data
 import torchvision.utils as vutils
 
 from attgan import AttGAN
-from data import CelebA, check_attribute_conflict
+from data import CelebA, CelebA_HQ, check_attribute_conflict
 from helpers import Progressbar
 
 
@@ -56,11 +56,18 @@ assert len(args.test_ints) == len(args.test_atts), 'the lengths of test_ints and
 output_path = join('output', args.experiment_name, 'sample_testing_multi_' + str(args.test_atts))
 os.makedirs(output_path, exist_ok=True)
 
-test_dataset = CelebA(args.data_path, args.attr_path, args.img_size, 'test', args.attrs)
-test_dataloader = data.DataLoader(
-    test_dataset, batch_size=1, num_workers=args.num_workers, 
-    shuffle=False, drop_last=False
-)
+if args.data == 'CelebA':
+    test_dataset = CelebA(args.data_path, args.attr_path, args.img_size, 'test', args.attrs)
+    test_dataloader = data.DataLoader(
+        test_dataset, batch_size=1, num_workers=args.num_workers, 
+        shuffle=False, drop_last=False
+    )
+if args.data == 'CelebA-HQ':
+    test_dataset = CelebA_HQ(args.data_path, args.attr_path, args.image_list_path, args.img_size, 'test', args.attrs)
+    test_dataloader = data.DataLoader(
+        test_dataset, batch_size=1, num_workers=args.num_workers, 
+        shuffle=False, drop_last=False
+    )
 if args.num_test is None:
     print('Testing images:', len(test_dataset))
 else:
