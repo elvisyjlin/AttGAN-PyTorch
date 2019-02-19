@@ -115,6 +115,7 @@ class AttGAN():
     def __init__(self, args):
         self.mode = args.mode
         self.gpu = args.gpu
+        self.multi_gpu = args.multi_gpu if 'multi_gpu' in args else False
         
         self.G = Generator(
             args.enc_dim, args.enc_layers, args.enc_norm, args.enc_acti, 
@@ -132,6 +133,10 @@ class AttGAN():
         self.D.train()
         if self.gpu: self.D.cuda()
         summary(self.D, [(3, args.img_size, args.img_size)], batch_size=4, use_gpu=self.gpu)
+        
+        if self.multi_gpu:
+            self.G = nn.DataParallel(self.G)
+            self.D = nn.DataParallel(self.D)
         
         self.optim_G = optim.Adam(self.G.parameters(), lr=args.lr, betas=args.betas)
         self.optim_D = optim.Adam(self.D.parameters(), lr=args.lr, betas=args.betas)

@@ -65,6 +65,7 @@ def parse(args=None):
     parser.add_argument('--save_interval', dest='save_interval', type=int, default=1000)
     parser.add_argument('--sample_interval', dest='sample_interval', type=int, default=1000)
     parser.add_argument('--gpu', dest='gpu', action='store_true')
+    parser.add_argument('--multi_gpu', dest='multi_gpu', action='store_true')
     parser.add_argument('--experiment_name', dest='experiment_name', default=datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y"))
     
     return parser.parse_args(args)
