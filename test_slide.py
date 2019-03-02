@@ -1,3 +1,10 @@
+# Copyright (C) 2018 Elvis Yu-Jing Lin <elvisyjlin@gmail.com>
+# 
+# This work is licensed under the MIT License. To view a copy of this license, 
+# visit https://opensource.org/licenses/MIT.
+
+"""Entry point for testing AttGAN network with sliding interpolation."""
+
 import argparse
 import json
 import os

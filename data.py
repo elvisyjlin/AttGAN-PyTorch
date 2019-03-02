@@ -1,3 +1,10 @@
+# Copyright (C) 2018 Elvis Yu-Jing Lin <elvisyjlin@gmail.com>
+# 
+# This work is licensed under the MIT License. To view a copy of this license, 
+# visit https://opensource.org/licenses/MIT.
+
+"""Custom datasets for CelebA and CelebA-HQ."""
+
 import numpy as np
 import os
 import torch

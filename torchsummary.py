@@ -1,4 +1,7 @@
 # https://github.com/sksq96/pytorch-summary
+
+"""Summarize network architectures for PyTorch"""
+
 import torch
 import torch.nn as nn
 from collections import OrderedDict
