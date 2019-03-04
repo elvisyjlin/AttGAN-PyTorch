@@ -37,7 +37,9 @@ pip3 install -r requirements.txt
   ├── 256_shortcut1_inject0_none
   ├── 256_shortcut1_inject1_none
   ├── 256_shortcut1_inject0_none_hq
-  └── 256_shortcut1_inject1_none_hq
+  ├── 256_shortcut1_inject1_none_hq
+  ├── 384_shortcut1_inject0_none_hq
+  └── 384_shortcut1_inject1_none_hq
   ```
 
 ## Usage
