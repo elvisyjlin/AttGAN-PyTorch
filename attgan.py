@@ -72,8 +72,16 @@ class Generator(nn.Module):
                 z = torch.cat([z, a_tile], dim=1)
         return z
     
-    def forward(self, x, a):
-        return self.decode(self.encode(x), a)
+    def forward(self, x, a=None, mode='enc-dec'):
+        if mode == 'enc-dec':
+            assert a is not None, 'No given attribute.'
+            return self.decode(self.encode(x), a)
+        if mode == 'enc':
+            return self.encode(x)
+        if mode == 'dec':
+            assert a is not None, 'No given attribute.'
+            return self.decode(x, a)
+        raise Exception('Unrecognized mode: ' + mode)
 
 class Discriminators(nn.Module):
     # No instancenorm in fcs in source code, which is different from paper.
@@ -158,9 +166,9 @@ class AttGAN():
         for p in self.D.parameters():
             p.requires_grad = False
         
-        zs_a = self.G.encode(img_a)
-        img_fake = self.G.decode(zs_a, att_b_)
-        img_recon = self.G.decode(zs_a, att_a_)
+        zs_a = self.G(img_a, mode='enc')
+        img_fake = self.G(zs_a, att_b_, mode='dec')
+        img_recon = self.G(zs_a, att_a_, mode='dec')
         d_fake, dc_fake = self.D(img_fake)
         
         if self.mode == 'wgan':

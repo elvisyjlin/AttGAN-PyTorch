@@ -56,7 +56,7 @@ python train.py \
 --gpu
 ```
 
-To train an AttGAN on CelebA-HQ 256x256
+To train an AttGAN on CelebA-HQ 256x256 with multiple GPUs
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 \ 
@@ -67,6 +67,7 @@ python train.py \
 --inject_layers 1 \ 
 --experiment_name 256_shortcut1_inject1_none_hq \ 
 --gpu
+--multi_gpu
 ```
 
 To visualize training details
