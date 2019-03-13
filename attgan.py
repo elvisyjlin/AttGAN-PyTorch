@@ -192,14 +192,6 @@ class AttGAN():
         return errG
     
     def trainD(self, img_a, att_a, att_a_, att_b, att_b_):
-        """
-        Due to the Multi-GPU problem in PyTorch 1.0.0 (see https://github.com/pytorch/pytorch/issues/16532), 
-        we have to compute the autograd in line with the backward function.
-        Otherwise, the computational graph will be delete when the function is returned.
-        The lines noted with `# workaround` and the commented parts are the workaround.
-        Once the problem is fixed, I will revise the code back.
-        """
-        
         for p in self.D.parameters():
             p.requires_grad = True
         
@@ -207,67 +199,41 @@ class AttGAN():
         d_real, dc_real = self.D(img_a)
         d_fake, dc_fake = self.D(img_fake)
         
-        #def gradient_penalty(f, real, fake=None):
-        #    def interpolate(a, b=None):
-        #        if b is None:  # interpolation in DRAGAN
-        #            beta = torch.rand_like(a)
-        #            b = a + 0.5 * a.var().sqrt() * beta
-        #        alpha = torch.rand(a.size(0), 1, 1, 1)
-        #        alpha = alpha.cuda() if self.gpu else alpha
-        #        inter = a + alpha * (b - a)
-        #        return inter
-        #    x = interpolate(real, fake).requires_grad_(True)
-        #    pred = f(x)
-        #    if isinstance(pred, tuple):
-        #        pred = pred[0]
-        #    grad = autograd.grad(
-        #        outputs=pred, inputs=x,
-        #        grad_outputs=torch.ones_like(pred),
-        #        create_graph=True, retain_graph=True, only_inputs=True
-        #    )[0]
-        #    grad = grad.view(grad.size(0), -1)
-        #    norm = grad.norm(2, dim=1)
-        #    gp = ((norm - 1.0) ** 2).mean()
-        #    return gp
-        
-        # workaround
-        def interpolate(a, b=None):
-            if b is None:  # interpolation in DRAGAN
-                beta = torch.rand_like(a)
-                b = a + 0.5 * a.var().sqrt() * beta
-            alpha = torch.rand(a.size(0), 1, 1, 1)
-            alpha = alpha.cuda() if self.gpu else alpha
-            inter = a + alpha * (b - a)
-            return inter
+        def gradient_penalty(f, real, fake=None):
+            def interpolate(a, b=None):
+                if b is None:  # interpolation in DRAGAN
+                    beta = torch.rand_like(a)
+                    b = a + 0.5 * a.var().sqrt() * beta
+                alpha = torch.rand(a.size(0), 1, 1, 1)
+                alpha = alpha.cuda() if self.gpu else alpha
+                inter = a + alpha * (b - a)
+                return inter
+            x = interpolate(real, fake).requires_grad_(True)
+            pred = f(x)
+            if isinstance(pred, tuple):
+                pred = pred[0]
+            grad = autograd.grad(
+                outputs=pred, inputs=x,
+                grad_outputs=torch.ones_like(pred),
+                create_graph=True, retain_graph=True, only_inputs=True
+            )[0]
+            grad = grad.view(grad.size(0), -1)
+            norm = grad.norm(2, dim=1)
+            gp = ((norm - 1.0) ** 2).mean()
+            return gp
         
         if self.mode == 'wgan':
             wd = d_real.mean() - d_fake.mean()
             df_loss = -wd
-        #    df_gp = gradient_penalty(self.D, img_a, img_fake)
-            df_gp_img_real, df_gp_img_fake = img_a, img_fake  # workaround
+            df_gp = gradient_penalty(self.D, img_a, img_fake)
         if self.mode == 'lsgan':  # mean_squared_error
             df_loss = F.mse_loss(d_real, torch.ones_like(d_fake)) + \
                       F.mse_loss(d_fake, torch.zeros_like(d_fake))
-        #    df_gp = gradient_penalty(self.D, img_a)
-            df_gp_img_real, df_gp_img_fake = img_a, None  # workaround
+            df_gp = gradient_penalty(self.D, img_a)
         if self.mode == 'dcgan':  # sigmoid_cross_entropy
             df_loss = F.binary_cross_entropy_with_logits(d_real, torch.ones_like(d_real)) + \
                       F.binary_cross_entropy_with_logits(d_fake, torch.zeros_like(d_fake))
-        #    df_gp = gradient_penalty(self.D, img_a)
-            df_gp_img_real, df_gp_img_fake = img_a, None  # workaround
-        # workaround
-        x = interpolate(df_gp_img_real, df_gp_img_fake).requires_grad_(True)
-        pred = self.D(x)
-        if isinstance(pred, tuple):
-            pred = pred[0]
-        grad = autograd.grad(
-            outputs=pred, inputs=x,
-            grad_outputs=torch.ones_like(pred),
-            create_graph=True, retain_graph=True, only_inputs=True
-        )[0]
-        grad = grad.view(grad.size(0), -1)
-        norm = grad.norm(2, dim=1)
-        df_gp = ((norm - 1.0) ** 2).mean()
+            df_gp = gradient_penalty(self.D, img_a)
         dc_loss = F.binary_cross_entropy_with_logits(dc_real, att_a)
         d_loss = df_loss + 10 * df_gp + l3 * dc_loss
         

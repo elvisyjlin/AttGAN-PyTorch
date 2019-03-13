@@ -19,6 +19,12 @@ The original TensorFlow version can be found [here](https://github.com/LynnHo/At
 pip3 install -r requirements.txt
 ```
 
+If you'd like to train with __multiple GPUs__, please install PyTorch __v0.4.0__ instead of v1.0.0 or above. The so-called stable version of PyTorch has a bunch of problems with regard to `nn.DataParallel()`. E.g. https://github.com/pytorch/pytorch/issues/15716, https://github.com/pytorch/pytorch/issues/16532, etc.
+
+```bash
+pip3 install --upgrade torch==0.4.0
+```
+
 * Dataset
   * [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html) dataset
     * [Images](https://www.dropbox.com/sh/8oqt9vytwxb3s4r/AADSNUu0bseoCKuxuI5ZeTl1a/Img?dl=0&preview=img_align_celeba.zip) should be placed in `./data/img_align_celeba/*.jpg`
