@@ -1,6 +1,6 @@
 # Copyright (C) 2018 Elvis Yu-Jing Lin <elvisyjlin@gmail.com>
 # 
-# This work is licensed under the MIT License. To view a copy of this license, 
+# This work is licensed under the MIT License. To view a copy of this license,
 # visit https://opensource.org/licenses/MIT.
 
 """Custom datasets for CelebA and CelebA-HQ."""
@@ -10,7 +10,7 @@ import os
 import torch
 import torch.utils.data as data
 import torchvision.transforms as transforms
-from skimage import io
+from PIL import Image
 
 
 class CelebA(data.Dataset):
@@ -33,16 +33,15 @@ class CelebA(data.Dataset):
             self.labels = labels[182637:]
         
         self.tf = transforms.Compose([
-            transforms.ToPILImage(), 
-            transforms.CenterCrop(170), 
-            transforms.Resize(image_size), 
-            transforms.ToTensor(), 
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+            transforms.CenterCrop(170),
+            transforms.Resize(image_size),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
         ])
                                        
         self.length = len(self.images)
     def __getitem__(self, index):
-        img = self.tf(io.imread(os.path.join(self.data_path, self.images[index])))
+        img = self.tf(Image.open(os.path.join(self.data_path, self.images[index])))
         att = torch.tensor((self.labels[index] + 1) // 2)
         return img, att
     def __len__(self):
@@ -72,15 +71,14 @@ class CelebA_HQ(data.Dataset):
             self.labels = labels[28500:]
         
         self.tf = transforms.Compose([
-            transforms.ToPILImage(), 
-            transforms.Resize(image_size), 
-            transforms.ToTensor(), 
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+            transforms.Resize(image_size),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
         ])
                                        
         self.length = len(self.images)
     def __getitem__(self, index):
-        img = self.tf(io.imread(os.path.join(self.data_path, self.images[index])))
+        img = self.tf(Image.open(os.path.join(self.data_path, self.images[index])))
         att = torch.tensor((self.labels[index] + 1) // 2)
         return img, att
     def __len__(self):
@@ -125,7 +123,7 @@ if __name__ == '__main__':
     import torchvision.utils as vutils
 
     attrs_default = [
-        'Bald', 'Bangs', 'Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Bushy_Eyebrows', 
+        'Bald', 'Bangs', 'Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Bushy_Eyebrows',
         'Eyeglasses', 'Male', 'Mouth_Slightly_Open', 'Mustache', 'No_Beard', 'Pale_Skin', 'Young'
     ]
     

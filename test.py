@@ -1,6 +1,6 @@
 # Copyright (C) 2018 Elvis Yu-Jing Lin <elvisyjlin@gmail.com>
 # 
-# This work is licensed under the MIT License. To view a copy of this license, 
+# This work is licensed under the MIT License. To view a copy of this license,
 # visit https://opensource.org/licenses/MIT.
 
 """Entry point for testing AttGAN network."""
@@ -16,7 +16,7 @@ import torch.utils.data as data
 import torchvision.utils as vutils
 
 from attgan import AttGAN
-from data import CelebA, CelebA_HQ, check_attribute_conflict
+from data import check_attribute_conflict
 from helpers import Progressbar
 
 
@@ -58,17 +58,15 @@ output_path = join('output', args.experiment_name, 'sample_testing')
 os.makedirs(output_path, exist_ok=True)
 
 if args.data == 'CelebA':
+    from data import CelebA
     test_dataset = CelebA(args.data_path, args.attr_path, args.img_size, 'test', args.attrs)
-    test_dataloader = data.DataLoader(
-        test_dataset, batch_size=1, num_workers=args.num_workers, 
-        shuffle=False, drop_last=False
-    )
 if args.data == 'CelebA-HQ':
+    from data import CelebA_HQ
     test_dataset = CelebA_HQ(args.data_path, args.attr_path, args.image_list_path, args.img_size, 'test', args.attrs)
-    test_dataloader = data.DataLoader(
-        test_dataset, batch_size=1, num_workers=args.num_workers, 
-        shuffle=False, drop_last=False
-    )
+test_dataloader = data.DataLoader(
+    test_dataset, batch_size=1, num_workers=args.num_workers,
+    shuffle=False, drop_last=False
+)
 if args.num_test is None:
     print('Testing images:', len(test_dataset))
 else:
@@ -104,7 +102,7 @@ for idx, (img_a, att_a) in enumerate(test_dataloader):
             samples.append(attgan.G(img_a, att_b_))
         samples = torch.cat(samples, dim=3)
         vutils.save_image(
-            samples, output_path + '/{:06d}.jpg'.format(idx + 182638), 
+            samples, output_path + '/{:06d}.jpg'.format(idx + 182638),
             nrow=1, normalize=True, range=(-1., 1.)
         )
         print('{:06d}.jpg done!'.format(idx + 182638))
