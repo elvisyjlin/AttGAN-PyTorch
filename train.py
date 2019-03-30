@@ -1,6 +1,6 @@
 # Copyright (C) 2018 Elvis Yu-Jing Lin <elvisyjlin@gmail.com>
 # 
-# This work is licensed under the MIT License. To view a copy of this license, 
+# This work is licensed under the MIT License. To view a copy of this license,
 # visit https://opensource.org/licenses/MIT.
 
 """Main entry point for training AttGAN network."""
@@ -12,7 +12,6 @@ import os
 from os.path import join
 
 import torch.utils.data as data
-from data import CelebA, CelebA_HQ
 
 import torch
 import torchvision.utils as vutils
@@ -23,7 +22,7 @@ from tensorboardX import SummaryWriter
 
 
 attrs_default = [
-    'Bald', 'Bangs', 'Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Bushy_Eyebrows', 
+    'Bald', 'Bangs', 'Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Bushy_Eyebrows',
     'Eyeglasses', 'Male', 'Mouth_Slightly_Open', 'Mustache', 'No_Beard', 'Pale_Skin', 'Young'
 ]
 
@@ -54,6 +53,10 @@ def parse(args=None):
     parser.add_argument('--dec_acti', dest='dec_acti', type=str, default='relu')
     parser.add_argument('--dis_acti', dest='dis_acti', type=str, default='lrelu')
     parser.add_argument('--dis_fc_acti', dest='dis_fc_acti', type=str, default='relu')
+    parser.add_argument('--lambda_1', dest='lambda_1', type=float, default=100.0)
+    parser.add_argument('--lambda_2', dest='lambda_2', type=float, default=10.0)
+    parser.add_argument('--lambda_3', dest='lambda_3', type=float, default=1.0)
+    parser.add_argument('--lambda_gp', dest='lambda_gp', type=float, default=10.0)
     
     parser.add_argument('--mode', dest='mode', default='wgan', choices=['wgan', 'lsgan', 'dcgan'])
     parser.add_argument('--epochs', dest='epochs', type=int, default=200, help='# of epochs')
@@ -91,27 +94,21 @@ with open(join('output', args.experiment_name, 'setting.txt'), 'w') as f:
     f.write(json.dumps(vars(args), indent=4, separators=(',', ':')))
 
 if args.data == 'CelebA':
+    from data import CelebA
     train_dataset = CelebA(args.data_path, args.attr_path, args.img_size, 'train', args.attrs)
-    train_dataloader = data.DataLoader(
-        train_dataset, batch_size=args.batch_size, num_workers=args.num_workers, 
-        shuffle=True, drop_last=True
-    )
     valid_dataset = CelebA(args.data_path, args.attr_path, args.img_size, 'valid', args.attrs)
-    valid_dataloader = data.DataLoader(
-        valid_dataset, batch_size=args.n_samples, num_workers=args.num_workers, 
-        shuffle=False, drop_last=False
-    )
 if args.data == 'CelebA-HQ':
+    from data import CelebA_HQ
     train_dataset = CelebA_HQ(args.data_path, args.attr_path, args.image_list_path, args.img_size, 'train', args.attrs)
-    train_dataloader = data.DataLoader(
-        train_dataset, batch_size=args.batch_size, num_workers=args.num_workers, 
-        shuffle=True, drop_last=True
-    )
     valid_dataset = CelebA_HQ(args.data_path, args.attr_path, args.image_list_path, args.img_size, 'valid', args.attrs)
-    valid_dataloader = data.DataLoader(
-        valid_dataset, batch_size=args.n_samples, num_workers=args.num_workers, 
-        shuffle=False, drop_last=False
-    )
+train_dataloader = data.DataLoader(
+    train_dataset, batch_size=args.batch_size, num_workers=args.num_workers,
+    shuffle=True, drop_last=True
+)
+valid_dataloader = data.DataLoader(
+    valid_dataset, batch_size=args.n_samples, num_workers=args.num_workers,
+    shuffle=False, drop_last=False
+)
 print('Training images:', len(train_dataset), '/', 'Validating images:', len(valid_dataset))
 
 attgan = AttGAN(args)
@@ -184,7 +181,7 @@ for epoch in range(args.epochs):
                 samples = torch.cat(samples, dim=3)
                 writer.add_image('sample', vutils.make_grid(samples, nrow=1, normalize=True, range=(-1., 1.)), it+1)
                 vutils.save_image(samples, os.path.join(
-                        'output', args.experiment_name, 'sample_training', 
+                        'output', args.experiment_name, 'sample_training',
                         'Epoch_({:d})_({:d}of{:d}).jpg'.format(epoch, it%it_per_epoch+1, it_per_epoch)
                     ), nrow=1, normalize=True, range=(-1., 1.))
         it += 1
