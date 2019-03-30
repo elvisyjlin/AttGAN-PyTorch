@@ -122,7 +122,11 @@ for idx, (img_a, att_a) in enumerate(test_dataloader):
         else:
             out_file = '{:06d}.jpg'.format(idx + 182638)
         vutils.save_image(
+<<<<<<< HEAD
             samples, join(output_path, out_file),
+=======
+            samples, output_path + '/{:06d}.jpg'.format(idx + 182638),
+>>>>>>> edfa838b4c6f24f853a335db07fffced19598946
             nrow=1, normalize=True, range=(-1., 1.)
         )
         print('{:s} done!'.format(out_file))
