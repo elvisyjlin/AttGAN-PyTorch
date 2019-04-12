@@ -166,9 +166,15 @@ for epoch in range(args.epochs):
             progressbar.say(epoch=epoch, iter=it+1, d_loss=errD['d_loss'], g_loss=errG['g_loss'])
         
         if (it+1) % args.save_interval == 0:
+            # To save storage space, I only checkpoint the weights of G.
+            # If you'd like to keep weights of G, D, optim_G, optim_D,
+            # please use save() instead of saveG().
             attgan.saveG(os.path.join(
                 'output', args.experiment_name, 'checkpoint', 'weights.{:d}.pth'.format(epoch)
             ))
+            # attgan.save(os.path.join(
+            #     'output', args.experiment_name, 'checkpoint', 'weights.{:d}.pth'.format(epoch)
+            # ))
         if (it+1) % args.sample_interval == 0:
             attgan.eval()
             with torch.no_grad():

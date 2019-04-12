@@ -9,7 +9,6 @@ import argparse
 import json
 import os
 from os.path import join
-from glob import glob
 
 import torch
 import torch.utils.data as data
@@ -18,6 +17,7 @@ import torchvision.utils as vutils
 from attgan import AttGAN
 from data import check_attribute_conflict
 from helpers import Progressbar
+from utils import find_model
 
 
 def parse(args=None):
@@ -32,16 +32,6 @@ def parse(args=None):
     parser.add_argument('--custom_attr', type=str, default='./data/list_attr_custom.txt')
     parser.add_argument('--gpu', action='store_true')
     return parser.parse_args(args)
-
-def find_model(path, epoch='latest'):
-    if epoch == 'latest':
-        files = glob(join(path, '*.pth'))
-        file = sorted(files, key=lambda x: int(x.rsplit('.', 2)[1]))[-1]
-    else:
-        file = join(path, 'weights.{:d}.pth'.format(int(epoch)))
-    assert os.path.exists(file), 'File not found: ' + file
-    print('Find model of {} epoch: {}'.format(epoch, file))
-    return file
 
 args_ = parse()
 print(args_)
@@ -122,11 +112,7 @@ for idx, (img_a, att_a) in enumerate(test_dataloader):
         else:
             out_file = '{:06d}.jpg'.format(idx + 182638)
         vutils.save_image(
-<<<<<<< HEAD
             samples, join(output_path, out_file),
-=======
-            samples, output_path + '/{:06d}.jpg'.format(idx + 182638),
->>>>>>> edfa838b4c6f24f853a335db07fffced19598946
             nrow=1, normalize=True, range=(-1., 1.)
         )
         print('{:s} done!'.format(out_file))
