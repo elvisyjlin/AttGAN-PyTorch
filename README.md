@@ -39,7 +39,7 @@ pip3 install --upgrade torch==0.4.0
     * Please see [here](https://github.com/willylulu/celeba-hq-modified).
     * _Images_ should be placed in `./data/celeba-hq/celeba-*/*.jpg`
     * _Image list_ should be placed in `./data/image_list.txt`
-* [Pretrained models](https://goo.gl/mQkqNo): download the models you need and unzip the files to `./output/` as below,
+* [Pretrained models](http://bit.ly/attgan-pretrain): download the models you need and unzip the files to `./output/` as below,
   ```text
   output
   ├── 128_shortcut1_inject0_none
