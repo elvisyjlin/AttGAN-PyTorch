@@ -139,7 +139,7 @@ class AttGAN():
         )
         self.G.train()
         if self.gpu: self.G.cuda()
-        summary(self.G, [(3, args.img_size, args.img_size), (args.n_attrs,)], batch_size=4, use_gpu=self.gpu)
+        summary(self.G, [(3, args.img_size, args.img_size), (args.n_attrs, 1, 1)], batch_size=4, device='cuda' if args.gpu else 'cpu')
         
         self.D = Discriminators(
             args.dis_dim, args.dis_norm, args.dis_acti,
@@ -147,7 +147,7 @@ class AttGAN():
         )
         self.D.train()
         if self.gpu: self.D.cuda()
-        summary(self.D, [(3, args.img_size, args.img_size)], batch_size=4, use_gpu=self.gpu)
+        summary(self.D, [(3, args.img_size, args.img_size)], batch_size=4, device='cuda' if args.gpu else 'cpu')
         
         if self.multi_gpu:
             self.G = nn.DataParallel(self.G)
@@ -302,6 +302,10 @@ if __name__ == '__main__':
     parser.add_argument('--dec_acti', dest='dec_acti', type=str, default='relu')
     parser.add_argument('--dis_acti', dest='dis_acti', type=str, default='lrelu')
     parser.add_argument('--dis_fc_acti', dest='dis_fc_acti', type=str, default='relu')
+    parser.add_argument('--lambda_1', dest='lambda_1', type=float, default=100.0)
+    parser.add_argument('--lambda_2', dest='lambda_2', type=float, default=10.0)
+    parser.add_argument('--lambda_3', dest='lambda_3', type=float, default=1.0)
+    parser.add_argument('--lambda_gp', dest='lambda_gp', type=float, default=10.0)
     parser.add_argument('--mode', dest='mode', default='wgan', choices=['wgan', 'lsgan', 'dcgan'])
     parser.add_argument('--lr', dest='lr', type=float, default=0.0002, help='learning rate')
     parser.add_argument('--beta1', dest='beta1', type=float, default=0.5)
@@ -310,4 +314,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     args.n_attrs = 13
     args.betas = (args.beta1, args.beta2)
-    arrgan = AttGAN(args)
+    attgan = AttGAN(args)
