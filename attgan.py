@@ -1,6 +1,6 @@
 # Copyright (C) 2018 Elvis Yu-Jing Lin <elvisyjlin@gmail.com>
 # 
-# This work is licensed under the MIT License. To view a copy of this license, 
+# This work is licensed under the MIT License. To view a copy of this license,
 # visit https://opensource.org/licenses/MIT.
 
 """AttGAN, generator, and discriminator."""
@@ -16,8 +16,8 @@ from torchsummary import summary
 MAX_DIM = 64 * 16  # 1024
 
 class Generator(nn.Module):
-    def __init__(self, enc_dim=64, enc_layers=5, enc_norm_fn='batchnorm', enc_acti_fn='lrelu', 
-                 dec_dim=64, dec_layers=5, dec_norm_fn='batchnorm', dec_acti_fn='relu', 
+    def __init__(self, enc_dim=64, enc_layers=5, enc_norm_fn='batchnorm', enc_acti_fn='lrelu',
+                 dec_dim=64, dec_layers=5, dec_norm_fn='batchnorm', dec_acti_fn='relu',
                  n_attrs=13, shortcut_layers=1, inject_layers=0, img_size=128):
         super(Generator, self).__init__()
         self.shortcut_layers = min(shortcut_layers, dec_layers - 1)
@@ -85,7 +85,7 @@ class Generator(nn.Module):
 
 class Discriminators(nn.Module):
     # No instancenorm in fcs in source code, which is different from paper.
-    def __init__(self, dim=64, norm_fn='instancenorm', acti_fn='lrelu', 
+    def __init__(self, dim=64, norm_fn='instancenorm', acti_fn='lrelu',
                  fc_dim=1024, fc_norm_fn='none', fc_acti_fn='lrelu', n_layers=5, img_size=128):
         super(Discriminators, self).__init__()
         self.f_size = img_size // 2**n_layers
@@ -100,11 +100,11 @@ class Discriminators(nn.Module):
             n_in = n_out
         self.conv = nn.Sequential(*layers)
         self.fc_adv = nn.Sequential(
-            LinearBlock(1024 * self.f_size * self.f_size, fc_dim, fc_norm_fn, fc_acti_fn), 
+            LinearBlock(1024 * self.f_size * self.f_size, fc_dim, fc_norm_fn, fc_acti_fn),
             LinearBlock(fc_dim, 1, 'none', 'none')
         )
         self.fc_cls = nn.Sequential(
-            LinearBlock(1024 * self.f_size * self.f_size, fc_dim, fc_norm_fn, fc_acti_fn), 
+            LinearBlock(1024 * self.f_size * self.f_size, fc_dim, fc_norm_fn, fc_acti_fn),
             LinearBlock(fc_dim, 13, 'none', 'none')
         )
     
@@ -122,32 +122,32 @@ import torch.optim as optim
 
 # multilabel_soft_margin_loss = sigmoid + binary_cross_entropy
 
-l1 = 100.0
-l2 = 10.0
-l3 = 1.0
-
 class AttGAN():
     def __init__(self, args):
         self.mode = args.mode
         self.gpu = args.gpu
         self.multi_gpu = args.multi_gpu if 'multi_gpu' in args else False
+        self.lambda_1 = args.lambda_1
+        self.lambda_2 = args.lambda_2
+        self.lambda_3 = args.lambda_3
+        self.lambda_gp = args.lambda_gp
         
         self.G = Generator(
-            args.enc_dim, args.enc_layers, args.enc_norm, args.enc_acti, 
-            args.dec_dim, args.dec_layers, args.dec_norm, args.dec_acti, 
+            args.enc_dim, args.enc_layers, args.enc_norm, args.enc_acti,
+            args.dec_dim, args.dec_layers, args.dec_norm, args.dec_acti,
             args.n_attrs, args.shortcut_layers, args.inject_layers, args.img_size
         )
         self.G.train()
         if self.gpu: self.G.cuda()
-        summary(self.G, [(3, args.img_size, args.img_size), (args.n_attrs,)], batch_size=4, use_gpu=self.gpu)
+        summary(self.G, [(3, args.img_size, args.img_size), (args.n_attrs, 1, 1)], batch_size=4, device='cuda' if args.gpu else 'cpu')
         
         self.D = Discriminators(
-            args.dis_dim, args.dis_norm, args.dis_acti, 
+            args.dis_dim, args.dis_norm, args.dis_acti,
             args.dis_fc_dim, args.dis_fc_norm, args.dis_fc_acti, args.dis_layers, args.img_size
         )
         self.D.train()
         if self.gpu: self.D.cuda()
-        summary(self.D, [(3, args.img_size, args.img_size)], batch_size=4, use_gpu=self.gpu)
+        summary(self.D, [(3, args.img_size, args.img_size)], batch_size=4, device='cuda' if args.gpu else 'cpu')
         
         if self.multi_gpu:
             self.G = nn.DataParallel(self.G)
@@ -179,14 +179,14 @@ class AttGAN():
             gf_loss = F.binary_cross_entropy_with_logits(d_fake, torch.ones_like(d_fake))
         gc_loss = F.binary_cross_entropy_with_logits(dc_fake, att_b)
         gr_loss = F.l1_loss(img_recon, img_a)
-        g_loss = gf_loss + l2 * gc_loss + l1 * gr_loss
+        g_loss = gf_loss + self.lambda_2 * gc_loss + self.lambda_1 * gr_loss
         
         self.optim_G.zero_grad()
         g_loss.backward()
         self.optim_G.step()
         
         errG = {
-            'g_loss': g_loss.item(), 'gf_loss': gf_loss.item(), 
+            'g_loss': g_loss.item(), 'gf_loss': gf_loss.item(),
             'gc_loss': gc_loss.item(), 'gr_loss': gr_loss.item()
         }
         return errG
@@ -235,7 +235,7 @@ class AttGAN():
                       F.binary_cross_entropy_with_logits(d_fake, torch.zeros_like(d_fake))
             df_gp = gradient_penalty(self.D, img_a)
         dc_loss = F.binary_cross_entropy_with_logits(dc_real, att_a)
-        d_loss = df_loss + 10 * df_gp + l3 * dc_loss
+        d_loss = df_loss + self.lambda_gp * df_gp + self.lambda_3 * dc_loss
         
         self.optim_D.zero_grad()
         d_loss.backward()
@@ -257,9 +257,9 @@ class AttGAN():
     
     def save(self, path):
         states = {
-            'G': self.G.state_dict(), 
-            'D': self.D.state_dict(), 
-            'optim_G': self.optim_G.state_dict(), 
+            'G': self.G.state_dict(),
+            'D': self.D.state_dict(),
+            'optim_G': self.optim_G.state_dict(),
             'optim_D': self.optim_D.state_dict()
         }
         torch.save(states, path)
@@ -302,6 +302,10 @@ if __name__ == '__main__':
     parser.add_argument('--dec_acti', dest='dec_acti', type=str, default='relu')
     parser.add_argument('--dis_acti', dest='dis_acti', type=str, default='lrelu')
     parser.add_argument('--dis_fc_acti', dest='dis_fc_acti', type=str, default='relu')
+    parser.add_argument('--lambda_1', dest='lambda_1', type=float, default=100.0)
+    parser.add_argument('--lambda_2', dest='lambda_2', type=float, default=10.0)
+    parser.add_argument('--lambda_3', dest='lambda_3', type=float, default=1.0)
+    parser.add_argument('--lambda_gp', dest='lambda_gp', type=float, default=10.0)
     parser.add_argument('--mode', dest='mode', default='wgan', choices=['wgan', 'lsgan', 'dcgan'])
     parser.add_argument('--lr', dest='lr', type=float, default=0.0002, help='learning rate')
     parser.add_argument('--beta1', dest='beta1', type=float, default=0.5)
