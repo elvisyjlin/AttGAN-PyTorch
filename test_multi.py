@@ -28,6 +28,7 @@ def parse(args=None):
     parser.add_argument('--num_test', dest='num_test', type=int)
     parser.add_argument('--load_epoch', dest='load_epoch', type=str, default='latest')
     parser.add_argument('--gpu', action='store_true')
+    parser.add_argument('--multi_gpu', action='store_true')
     return parser.parse_args(args)
 
 def find_model(path, epoch='latest'):
@@ -51,8 +52,7 @@ args.test_ints = args_.test_ints
 args.num_test = args_.num_test
 args.load_epoch = args_.load_epoch
 args.gpu = args_.gpu
-args.n_attrs = len(args.attrs)
-args.betas = (args.beta1, args.beta2)
+args.multi_gpu = args_.multi_gpu
 
 assert args.test_atts is not None, 'test_atts should be chosen in %s' % (str(args.attrs))
 for a in args.test_atts:
