@@ -310,4 +310,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     args.n_attrs = 13
     args.betas = (args.beta1, args.beta2)
-    arrgan = AttGAN(args)
+    attgan = AttGAN(args)
