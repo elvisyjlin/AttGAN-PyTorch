@@ -110,6 +110,6 @@ for idx, (img_a, att_a) in enumerate(test_dataloader):
             out_file = '{:06d}.jpg'.format(idx + 182638)
         vutils.save_image(
             samples, join(output_path, out_file),
-            nrow=1, normalize=True, range=(-1., 1.)
+            nrow=1, normalize=True, value_range=(-1., 1.)
         )
         print('{:s} done!'.format(out_file))

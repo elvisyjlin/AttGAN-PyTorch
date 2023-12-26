@@ -163,7 +163,7 @@ if __name__ == '__main__':
     print('Attributes:')
     print(args.attrs)
     for x, y in dataloader:
-        vutils.save_image(x, 'test.png', nrow=8, normalize=True, range=(-1., 1.))
+        vutils.save_image(x, 'test.png', nrow=8, normalize=True, value_range=(-1., 1.))
         print(y)
         break
     del x, y

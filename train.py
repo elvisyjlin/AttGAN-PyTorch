@@ -185,9 +185,9 @@ for epoch in range(args.epochs):
                         att_b_[..., i - 1] = att_b_[..., i - 1] * args.test_int / args.thres_int
                     samples.append(attgan.G(fixed_img_a, att_b_))
                 samples = torch.cat(samples, dim=3)
-                writer.add_image('sample', vutils.make_grid(samples, nrow=1, normalize=True, range=(-1., 1.)), it+1)
+                writer.add_image('sample', vutils.make_grid(samples, nrow=1, normalize=True, value_range=(-1., 1.)), it+1)
                 vutils.save_image(samples, os.path.join(
                         'output', args.experiment_name, 'sample_training',
                         'Epoch_({:d})_({:d}of{:d}).jpg'.format(epoch, it%it_per_epoch+1, it_per_epoch)
-                    ), nrow=1, normalize=True, range=(-1., 1.))
+                    ), nrow=1, normalize=True, value_range=(-1., 1.))
         it += 1
